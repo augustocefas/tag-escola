@@ -1,0 +1,59 @@
+{
+    "name": "client",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite --host",
+        "build": "tsc -b && vite build --mode production",
+        "lint": "eslint .",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@ckeditor/ckeditor5-alignment": "^47.6.0",
+        "@ckeditor/ckeditor5-font": "^47.6.0",
+        "@ckeditor/ckeditor5-react": "^11.0.1",
+        "@dnd-kit/react": "^0.3.2",
+        "@emotion/react": "^11.14.0",
+        "@emotion/styled": "^11.14.1",
+        "@fullcalendar/core": "^6.1.20",
+        "@fullcalendar/daygrid": "^6.1.20",
+        "@fullcalendar/interaction": "^6.1.20",
+        "@fullcalendar/react": "^6.1.20",
+        "@fullcalendar/timegrid": "^6.1.20",
+        "@mui/material": "^7.3.9",
+        "@mui/x-data-grid-pro": "^7.29.12",
+        "@mui/x-date-pickers": "^8.27.2",
+        "@mui/x-license": "^8.26.0",
+        "@tailwindcss/vite": "^4.1.18",
+        "@tanstack/react-query": "^5.90.20",
+        "@tanstack/react-query-devtools": "^5.91.2",
+        "axios": "^1.13.4",
+        "ckeditor5": "^47.6.0",
+        "dayjs": "^1.11.19",
+        "moment": "^2.30.1",
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
+        "react-icons": "^5.5.0",
+        "react-router-dom": "^7.13.0",
+        "tailwindcss": "^4.1.18",
+        "zustand": "^5.0.10"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.39.1",
+        "@types/node": "^24.10.13",
+        "@types/react": "^19.2.5",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^5.1.1",
+        "eslint": "^9.39.3",
+        "eslint-plugin-react-hooks": "^7.0.1",
+        "eslint-plugin-react-refresh": "^0.4.24",
+        "globals": "^16.5.0",
+        "typescript": "~5.9.3",
+        "typescript-eslint": "^8.56.0",
+        "vite": "npm:rolldown-vite@7.2.5"
+    },
+    "overrides": {
+        "vite": "npm:rolldown-vite@7.2.5"
+    }
+}

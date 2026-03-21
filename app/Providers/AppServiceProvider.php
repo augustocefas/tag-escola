@@ -1,0 +1,29 @@
+<?php
+
+namespace App\Providers;
+
+use http\Env\Request;
+use Illuminate\Support\ServiceProvider;
+use Stancl\Tenancy\Middleware\InitializeTenancyByRequestData;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+
+
+        // Configurar paginação para usar Tailwind CSS
+        \Illuminate\Pagination\Paginator::useTailwind();
+    }
+}
