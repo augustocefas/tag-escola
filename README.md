@@ -51,3 +51,9 @@ ENV SOCKET
     DB_PASSWORD
     DB_NAME
     CORS_ORIGINS
+
+
+# phone 45:22:94:74:10:ED
+# chpad 18:CC:70:FA:D5:17
+# ?pad 4E:F2:2F:2B:CD:AC
+# ???? C8:40:CD:C3:1B:16
