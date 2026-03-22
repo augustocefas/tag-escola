@@ -1,27 +1,34 @@
-import { api } from '@/lib/apiClient';
-import type { ApiResponse } from '@/types/api';
-import type { Usuario } from '@/types/models';
-
-const BASE_PATH = '/usuarios';
+import { api } from '../lib/apiClient';
+import { Usuario, PaginatedResponse, ApiResponse } from '../types/models';
 
 export const usuarioService = {
-  getUsuarios: async (): Promise<ApiResponse<Usuario[]>> => {
-    const { data } = await api.get(BASE_PATH);
+  getAll: async (params?: any): Promise<ApiResponse<Usuario[] | PaginatedResponse<Usuario>>> => {
+    const { data } = await api.get('/usuarios', { params });
     return data;
   },
 
-  createUsuario: async (payload: Partial<Usuario> & { password?: string }): Promise<ApiResponse<string>> => {
-    const { data } = await api.post(BASE_PATH, payload);
+  create: async (payload: Partial<Usuario>): Promise<ApiResponse<Usuario>> => {
+    const { data } = await api.post('/usuarios', payload);
     return data;
   },
 
-  updateUsuario: async (id: string, payload: Partial<Usuario> & { password?: string }): Promise<ApiResponse<string>> => {
-    const { data } = await api.put(`${BASE_PATH}/${id}`, payload);
+  update: async (id: string, payload: Partial<Usuario>): Promise<ApiResponse<Usuario>> => {
+    const { data } = await api.put(`/usuarios/${id}`, payload);
     return data;
   },
 
-  deleteUsuario: async (id: string): Promise<ApiResponse<string>> => {
-    const { data } = await api.delete(`${BASE_PATH}/${id}`);
+  delete: async (id: string): Promise<ApiResponse<void>> => {
+    const { data } = await api.delete(`/usuarios/${id}`);
+    return data;
+  },
+
+  setDarkMode: async (darkMode: boolean): Promise<ApiResponse<Usuario>> => {
+    const { data } = await api.post(`/usuarios/set-dark-mode/${darkMode}`);
+    return data;
+  },
+
+  changePassword: async (payload: any): Promise<ApiResponse<any>> => {
+    const { data } = await api.post('/usuarios/change-password', payload);
     return data;
   },
 };

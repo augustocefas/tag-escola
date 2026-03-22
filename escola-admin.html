@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EscolaTag — Painel Administrativo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['DM Sans', 'sans-serif'],
+            mono: ['DM Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50:  '#f0fdf6',
+              100: '#dcfce9',
+              200: '#bbf7d2',
+              300: '#86efad',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            },
+          },
+          animation: {
+            'fade-in': 'fadeIn .3s ease both',
+            'slide-up': 'slideUp .35s cubic-bezier(.16,1,.3,1) both',
+            'pulse-dot': 'pulseDot 2s ease-in-out infinite',
+          },
+          keyframes: {
+            fadeIn:   { from: { opacity: 0 }, to: { opacity: 1 } },
+            slideUp:  { from: { opacity: 0, transform: 'translateY(12px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
+            pulseDot: { '0%,100%': { opacity: 1, transform: 'scale(1)' }, '50%': { opacity: .5, transform: 'scale(.85)' } },
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Scrollbar fina */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .dark ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+
+    /* Sidebar link active */
+    .nav-link.active {
+      background: rgb(34 197 94 / .12);
+      color: #22c55e;
+    }
+    .dark .nav-link.active { background: rgb(34 197 94 / .15); color: #4ade80; }
+    .nav-link.active .nav-icon { color: #22c55e; }
+    .dark .nav-link.active .nav-icon { color: #4ade80; }
+
+    /* Transitions globais */
+    .nav-link, .btn, .card, input, select, textarea {
+      transition: all .18s ease;
+    }
+
+    /* Input focus ring */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgb(34 197 94 / .2);
+    }
+
+    /* Table hover */
+    .tbl-row:hover { background: rgb(34 197 94 / .04); }
+    .dark .tbl-row:hover { background: rgb(34 197 94 / .07); }
+
+    /* Modal backdrop */
+    .modal-backdrop {
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    /* Tag chip */
+    .chip {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: .04em;
+    }
+
+    /* Status dot */
+    .dot-online  { background: #22c55e; box-shadow: 0 0 0 3px rgb(34 197 94 / .25); }
+    .dot-offline { background: #64748b; }
+    .dot-alert   { background: #f59e0b; box-shadow: 0 0 0 3px rgb(245 158 11 / .25); }
+
+    /* Page transitions */
+    .page { animation: fadeIn .25s ease both; }
+    .page.hidden { display: none; }
+
+    /* Sidebar collapse on mobile */
+    @media (max-width: 1023px) {
+      #sidebar { transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 dark:bg-[#0b0f1a] text-slate-800 dark:text-slate-100 min-h-screen">
+
+<!-- ═══════════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════════════ -->
+<aside id="sidebar"
+  class="fixed inset-y-0 left-0 z-40 w-60 bg-white dark:bg-[#111827] border-r border-slate-100 dark:border-slate-800 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0">
+
+  <!-- Logo -->
+  <div class="flex items-center gap-3 px-5 h-16 border-b border-slate-100 dark:border-slate-800">
+    <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center flex-shrink-0">
+      <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/>
+      </svg>
+    </div>
+    <div>
+      <span class="font-semibold text-sm text-slate-900 dark:text-white tracking-tight">EscolaTag</span>
+      <p class="text-[10px] text-slate-400 dark:text-slate-500 -mt-0.5">v1.0 — Admin</p>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+
+    <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-600 px-3 pb-2 pt-1">Principal</p>
+
+    <a href="#" onclick="navigate('dashboard')" class="nav-link active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+      <svg class="nav-icon w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      Dashboard
+    </a>
+
+    <a href="#" onclick="navigate('chegadas')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+      <svg class="nav-icon w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+      </svg>
+      Chegadas
+      <span class="ml-auto bg-brand-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">3</span>
+    </a>
+
+    <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-600 px-3 pb-2 pt-4">Cadastros</p>
+
+    <a href="#" onclick="navigate('alunos')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+      <svg class="nav-icon w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+      </svg>
+      Alunos
+    </a>
+
+    <a href="#" onclick="navigate('salas')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+      <svg class="nav-icon w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21"/>
+      </svg>
+      Salas
+    </a>
+
+    <a href="#" onclick="navigate('tags')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+      <svg class="nav-icon w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z"/>
+      </svg>
+      Tags BLE
+    </a>
+
+    <a href="#" onclick="navigate('usuarios')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+      <svg class="nav-icon w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+      </svg>
+      Usuários
+    </a>
+
+  </nav>
+
+  <!-- Footer sidebar -->
+  <div class="px-4 py-4 border-t border-slate-100 dark:border-slate-800">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">A</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">Admin</p>
+        <p class="text-[10px] text-slate-400 truncate">admin@escola.edu.br</p>
+      </div>
+      <button onclick="toggleTheme()" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+        <svg id="icon-sun" class="w-4 h-4 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <svg id="icon-moon" class="w-4 h-4 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- Overlay mobile -->
+<div id="sidebar-overlay" onclick="closeSidebar()" class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm hidden lg:hidden"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     MAIN
+════════════════════════════════════════════════════ -->
+<div class="lg:pl-60 min-h-screen flex flex-col">
+
+  <!-- Topbar -->
+  <header class="sticky top-0 z-20 h-16 bg-white/80 dark:bg-[#111827]/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 flex items-center px-4 md:px-6 gap-4">
+    <button onclick="openSidebar()" class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+    </button>
+
+    <div class="flex-1">
+      <h1 id="page-title" class="text-sm font-semibold text-slate-900 dark:text-white">Dashboard</h1>
+    </div>
+
+    <!-- Search -->
+    <div class="hidden md:flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-2 w-56">
+      <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+      <input type="text" placeholder="Buscar..." class="bg-transparent text-xs text-slate-600 dark:text-slate-300 placeholder-slate-400 flex-1 focus:outline-none" />
+    </div>
+
+    <!-- Live indicator -->
+    <div class="flex items-center gap-2 bg-brand-500/10 dark:bg-brand-500/15 px-3 py-1.5 rounded-full">
+      <span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse-dot"></span>
+      <span class="text-xs font-medium text-brand-600 dark:text-brand-400">Ao vivo</span>
+    </div>
+
+    <!-- Notifications -->
+    <button class="relative w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+      <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
+      <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full border-2 border-white dark:border-[#111827]"></span>
+    </button>
+  </header>
+
+  <!-- Pages container -->
+  <main class="flex-1 p-4 md:p-6 space-y-6">
+
+    <!-- ══════════ DASHBOARD ══════════ -->
+    <div id="page-dashboard" class="page space-y-6">
+
+      <!-- Stats -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="card bg-white dark:bg-[#111827] rounded-2xl p-5 border border-slate-100 dark:border-slate-800 hover:border-brand-200 dark:hover:border-brand-900">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-xs text-slate-400 font-medium">Chegadas hoje</p>
+              <p class="text-3xl font-semibold text-slate-900 dark:text-white mt-1">24</p>
+            </div>
+            <div class="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center">
+              <svg class="w-4.5 h-4.5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
+            </div>
+          </div>
+          <p class="text-xs text-brand-500 mt-3">↑ 12% vs ontem</p>
+        </div>
+
+        <div class="card bg-white dark:bg-[#111827] rounded-2xl p-5 border border-slate-100 dark:border-slate-800 hover:border-brand-200 dark:hover:border-brand-900">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-xs text-slate-400 font-medium">Alunos ativos</p>
+              <p class="text-3xl font-semibold text-slate-900 dark:text-white mt-1">312</p>
+            </div>
+            <div class="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-900/30 flex items-center justify-center">
+              <svg class="w-4.5 h-4.5 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+            </div>
+          </div>
+          <p class="text-xs text-slate-400 mt-3">8 salas cadastradas</p>
+        </div>
+
+        <div class="card bg-white dark:bg-[#111827] rounded-2xl p-5 border border-slate-100 dark:border-slate-800 hover:border-brand-200 dark:hover:border-brand-900">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-xs text-slate-400 font-medium">Tags ativas</p>
+              <p class="text-3xl font-semibold text-slate-900 dark:text-white mt-1">287</p>
+            </div>
+            <div class="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center">
+              <svg class="w-4.5 h-4.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z"/></svg>
+            </div>
+          </div>
+          <p class="text-xs text-amber-500 mt-3">25 sem vincular</p>
+        </div>
+
+        <div class="card bg-white dark:bg-[#111827] rounded-2xl p-5 border border-slate-100 dark:border-slate-800 hover:border-brand-200 dark:hover:border-brand-900">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-xs text-slate-400 font-medium">Aguardando</p>
+              <p class="text-3xl font-semibold text-slate-900 dark:text-white mt-1">3</p>
+            </div>
+            <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center">
+              <svg class="w-4.5 h-4.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+          </div>
+          <p class="text-xs text-amber-500 mt-3 animate-pulse">Alunos na fila</p>
+        </div>
+      </div>
+
+      <!-- Feed de chegadas + Salas -->
+      <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+
+        <!-- Feed ao vivo -->
+        <div class="xl:col-span-2 bg-white dark:bg-[#111827] rounded-2xl border border-slate-100 dark:border-slate-800">
+          <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse-dot"></span>
+              <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Feed de chegadas</h2>
+            </div>
+            <span class="text-xs text-slate-400">Hoje, 22/03/2026</span>
+          </div>
+          <div class="divide-y divide-slate-50 dark:divide-slate-800/80">
+            <!-- Itens do feed -->
+            <div class="flex items-center gap-4 px-5 py-3.5 tbl-row animate-slide-up">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">MA</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">Miguel Alves</p>
+                <p class="text-xs text-slate-400 truncate">Responsável: João Alves · <span class="font-mono">AA:B2:C3:D4:E5:F6</span></p>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <span class="inline-flex items-center gap-1 text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 px-2 py-1 rounded-lg font-medium">3º Ano A</span>
+                <p class="text-[10px] text-slate-400 mt-1">14:32</p>
+              </div>
+              <button class="flex-shrink-0 w-8 h-8 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-500 hover:bg-brand-100 dark:hover:bg-brand-900/50 flex items-center justify-center">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+              </button>
+            </div>
+
+            <div class="flex items-center gap-4 px-5 py-3.5 tbl-row">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">LS</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">Laura Souza</p>
+                <p class="text-xs text-slate-400 truncate">Responsável: Ana Souza · <span class="font-mono">BB:C3:D4:E5:F6:A7</span></p>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <span class="inline-flex items-center gap-1 text-xs bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 px-2 py-1 rounded-lg font-medium">1º Ano B</span>
+                <p class="text-[10px] text-slate-400 mt-1">14:28</p>
+              </div>
+              <button class="flex-shrink-0 w-8 h-8 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-500 hover:bg-brand-100 dark:hover:bg-brand-900/50 flex items-center justify-center">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+              </button>
+            </div>
+
+            <div class="flex items-center gap-4 px-5 py-3.5 tbl-row">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">PC</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">Pedro Costa</p>
+                <p class="text-xs text-slate-400 truncate">Responsável: Maria Costa · <span class="font-mono">CC:D4:E5:F6:A7:B8</span></p>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <span class="inline-flex items-center gap-1 text-xs bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-2 py-1 rounded-lg font-medium">2º Ano C</span>
+                <p class="text-[10px] text-slate-400 mt-1">14:20</p>
+              </div>
+              <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+              </div>
+            </div>
+
+            <div class="px-5 py-3">
+              <button class="text-xs text-brand-500 hover:text-brand-600 font-medium">Ver histórico completo →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status salas -->
+        <div class="bg-white dark:bg-[#111827] rounded-2xl border border-slate-100 dark:border-slate-800">
+          <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+            <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Status das salas</h2>
+          </div>
+          <div class="p-4 space-y-2">
+            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+              <div class="flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full dot-online flex-shrink-0"></span>
+                <div>
+                  <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">1º Ano A</p>
+                  <p class="text-[10px] text-slate-400">Prof. Carla</p>
+                </div>
+              </div>
+              <span class="chip bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 px-2 py-1 rounded-lg">2 aguard.</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+              <div class="flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full dot-online flex-shrink-0"></span>
+                <div>
+                  <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">2º Ano B</p>
+                  <p class="text-[10px] text-slate-400">Prof. Marcos</p>
+                </div>
+              </div>
+              <span class="chip bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 px-2 py-1 rounded-lg">1 aguard.</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+              <div class="flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full dot-offline flex-shrink-0"></span>
+                <div>
+                  <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">3º Ano C</p>
+                  <p class="text-[10px] text-slate-400">Prof. Júlia</p>
+                </div>
+              </div>
+              <span class="chip bg-slate-100 dark:bg-slate-700 text-slate-500 px-2 py-1 rounded-lg">offline</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+              <div class="flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full dot-online flex-shrink-0"></span>
+                <div>
+                  <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">4º Ano A</p>
+                  <p class="text-[10px] text-slate-400">Prof. Roberto</p>
+                </div>
+              </div>
+              <span class="chip bg-slate-100 dark:bg-slate-700 text-slate-500 px-2 py-1 rounded-lg">livre</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ ALUNOS ══════════ -->
+    <div id="page-alunos" class="page hidden space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base font-semibold text-slate-900 dark:text-white">Alunos</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Gerencie os alunos e suas salas</p>
+        </div>
+        <button onclick="openModal('modal-aluno')" class="btn inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          Novo aluno
+        </button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="flex flex-wrap gap-2">
+        <div class="flex items-center gap-2 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 flex-1 min-w-48">
+          <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+          <input type="text" placeholder="Buscar aluno ou matrícula..." class="bg-transparent text-xs text-slate-600 dark:text-slate-300 placeholder-slate-400 flex-1 focus:outline-none" />
+        </div>
+        <select class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-600 dark:text-slate-300 focus:outline-none focus:border-brand-400">
+          <option>Todas as salas</option>
+          <option>1º Ano A</option>
+          <option>2º Ano B</option>
+        </select>
+      </div>
+
+      <!-- Tabela -->
+      <div class="bg-white dark:bg-[#111827] rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100 dark:border-slate-800">
+              <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5">Aluno</th>
+              <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5 hidden md:table-cell">Matrícula</th>
+              <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5 hidden lg:table-cell">Nascimento</th>
+              <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5">Sala</th>
+              <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5">Tag</th>
+              <th class="px-5 py-3.5"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50 dark:divide-slate-800/80">
+            <tr class="tbl-row">
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">MA</div>
+                  <span class="font-medium text-slate-800 dark:text-slate-200 text-sm">Miguel Alves</span>
+                </div>
+              </td>
+              <td class="px-5 py-3.5 hidden md:table-cell"><span class="chip bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-1 rounded-lg">2026001</span></td>
+              <td class="px-5 py-3.5 text-xs text-slate-400 hidden lg:table-cell">12/05/2018</td>
+              <td class="px-5 py-3.5"><span class="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 px-2 py-1 rounded-lg font-medium">3º Ano A</span></td>
+              <td class="px-5 py-3.5"><span class="w-2 h-2 rounded-full bg-brand-400 inline-block"></span></td>
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-1 justify-end">
+                  <button class="w-7 h-7 rounded-lg text-slate-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg>
+                  </button>
+                  <button class="w-7 h-7 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr class="tbl-row">
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">LS</div>
+                  <span class="font-medium text-slate-800 dark:text-slate-200 text-sm">Laura Souza</span>
+                </div>
+              </td>
+              <td class="px-5 py-3.5 hidden md:table-cell"><span class="chip bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-1 rounded-lg">2026002</span></td>
+              <td class="px-5 py-3.5 text-xs text-slate-400 hidden lg:table-cell">03/11/2020</td>
+              <td class="px-5 py-3.5"><span class="text-xs bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 px-2 py-1 rounded-lg font-medium">1º Ano B</span></td>
+              <td class="px-5 py-3.5"><span class="w-2 h-2 rounded-full bg-brand-400 inline-block"></span></td>
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-1 justify-end">
+                  <button class="w-7 h-7 rounded-lg text-slate-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg>
+                  </button>
+                  <button class="w-7 h-7 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- Pagination -->
+        <div class="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <span class="text-xs text-slate-400">Mostrando 2 de 312</span>
+          <div class="flex gap-1">
+            <button class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+            </button>
+            <button class="w-7 h-7 rounded-lg bg-brand-500 text-white text-xs font-medium flex items-center justify-center">1</button>
+            <button class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 text-xs flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800">2</button>
+            <button class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ SALAS ══════════ -->
+    <div id="page-salas" class="page hidden space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base font-semibold text-slate-900 dark:text-white">Salas</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Turmas e turno de funcionamento</p>
+        </div>
+        <button onclick="openModal('modal-sala')" class="btn inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          Nova sala
+        </button>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <!-- Cards de sala -->
+        <div class="card bg-white dark:bg-[#111827] rounded-2xl p-5 border border-slate-100 dark:border-slate-800 hover:border-brand-200 dark:hover:border-brand-900 hover:shadow-sm space-y-3">
+          <div class="flex items-start justify-between">
+            <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-900/30 flex items-center justify-center">
+              <svg class="w-5 h-5 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21"/></svg>
+            </div>
+            <div class="flex gap-1">
+              <button class="w-7 h-7 rounded-lg text-slate-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 flex items-center justify-center">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+              </button>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">1º Ano A</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Turno: Manhã · 2026</p>
+          </div>
+          <div class="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800">
+            <span class="text-xs text-slate-400">38 alunos</span>
+            <span class="w-2 h-2 rounded-full dot-online"></span>
+          </div>
+        </div>
+
+        <div class="card bg-white dark:bg-[#111827] rounded-2xl p-5 border border-slate-100 dark:border-slate-800 hover:border-brand-200 dark:hover:border-brand-900 hover:shadow-sm space-y-3">
+          <div class="flex items-start justify-between">
+            <div class="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center">
+              <svg class="w-5 h-5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21"/></svg>
+            </div>
+            <button class="w-7 h-7 rounded-lg text-slate-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 flex items-center justify-center">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+            </button>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">2º Ano B</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Turno: Tarde · 2026</p>
+          </div>
+          <div class="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800">
+            <span class="text-xs text-slate-400">35 alunos</span>
+            <span class="w-2 h-2 rounded-full dot-online"></span>
+          </div>
+        </div>
+
+        <!-- Card novo -->
+        <button onclick="openModal('modal-sala')" class="card border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700 rounded-2xl p-5 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-brand-500 transition-colors min-h-[148px]">
+          <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </div>
+          <span class="text-xs font-medium">Nova sala</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════════ TAGS BLE ══════════ -->
+    <div id="page-tags" class="page hidden space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base font-semibold text-slate-900 dark:text-white">Tags BLE</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Chaveiros Bluetooth dos responsáveis</p>
+        </div>
+        <button onclick="openModal('modal-tag')" class="btn inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          Nova tag
+        </button>
+      </div>
+
+      <div class="bg-white dark:bg-[#111827] rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100 dark:border-slate-800">
+              <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5">MAC Address</th>
+              <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5 hidden md:table-cell">Apelido</th>
+              <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5 hidden lg:table-cell">Responsável</th>
+              <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5">Aluno</th>
+              <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5 hidden md:table-cell">Status</th>
+              <th class="px-5 py-3.5"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50 dark:divide-slate-800/80">
+            <tr class="tbl-row">
+              <td class="px-5 py-3.5"><span class="chip bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-lg">AA:B2:C3:D4:E5:F6</span></td>
+              <td class="px-5 py-3.5 text-xs text-slate-600 dark:text-slate-300 hidden md:table-cell">Chaveiro João</td>
+              <td class="px-5 py-3.5 text-xs text-slate-600 dark:text-slate-300 hidden lg:table-cell">João Alves</td>
+              <td class="px-5 py-3.5 text-xs font-medium text-slate-700 dark:text-slate-200">Miguel Alves</td>
+              <td class="px-5 py-3.5 hidden md:table-cell">
+                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-brand-600 dark:text-brand-400">
+                  <span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>Vinculada
+                </span>
+              </td>
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-1 justify-end">
+                  <button class="w-7 h-7 rounded-lg text-slate-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                  </button>
+                  <button class="w-7 h-7 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr class="tbl-row">
+              <td class="px-5 py-3.5"><span class="chip bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-lg">FF:E5:D4:C3:B2:A1</span></td>
+              <td class="px-5 py-3.5 text-xs text-slate-600 dark:text-slate-300 hidden md:table-cell">—</td>
+              <td class="px-5 py-3.5 text-xs text-slate-400 hidden lg:table-cell">—</td>
+              <td class="px-5 py-3.5 text-xs text-slate-400">Não vinculada</td>
+              <td class="px-5 py-3.5 hidden md:table-cell">
+                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Pendente
+                </span>
+              </td>
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-1 justify-end">
+                  <button class="w-7 h-7 rounded-lg text-slate-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                  </button>
+                  <button class="w-7 h-7 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════ USUÁRIOS ══════════ -->
+    <div id="page-usuarios" class="page hidden space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base font-semibold text-slate-900 dark:text-white">Usuários</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Administradores e professores</p>
+        </div>
+        <button onclick="openModal('modal-usuario')" class="btn inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          Novo usuário
+        </button>
+      </div>
+      <div class="bg-white dark:bg-[#111827] rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100 dark:border-slate-800">
+              <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5">Usuário</th>
+              <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5 hidden md:table-cell">E-mail</th>
+              <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5">Perfil</th>
+              <th class="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5 hidden lg:table-cell">Sala</th>
+              <th class="px-5 py-3.5"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50 dark:divide-slate-800/80">
+            <tr class="tbl-row">
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-xs font-semibold">CA</div>
+                  <span class="font-medium text-slate-800 dark:text-slate-200 text-sm">Carla Andrade</span>
+                </div>
+              </td>
+              <td class="px-5 py-3.5 text-xs text-slate-400 hidden md:table-cell">carla@escola.edu.br</td>
+              <td class="px-5 py-3.5"><span class="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 px-2 py-1 rounded-lg font-medium">Professor</span></td>
+              <td class="px-5 py-3.5 text-xs text-slate-400 hidden lg:table-cell">1º Ano A</td>
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-1 justify-end">
+                  <button class="w-7 h-7 rounded-lg text-slate-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                  </button>
+                  <button class="w-7 h-7 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr class="tbl-row">
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center text-white text-xs font-semibold">AD</div>
+                  <span class="font-medium text-slate-800 dark:text-slate-200 text-sm">Admin</span>
+                </div>
+              </td>
+              <td class="px-5 py-3.5 text-xs text-slate-400 hidden md:table-cell">admin@escola.edu.br</td>
+              <td class="px-5 py-3.5"><span class="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-lg font-medium">Gestor</span></td>
+              <td class="px-5 py-3.5 text-xs text-slate-400 hidden lg:table-cell">—</td>
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-1 justify-end">
+                  <button class="w-7 h-7 rounded-lg text-slate-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════ CHEGADAS ══════════ -->
+    <div id="page-chegadas" class="page hidden space-y-4">
+      <div>
+        <h2 class="text-base font-semibold text-slate-900 dark:text-white">Chegadas</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Histórico de notificações do dia</p>
+      </div>
+      <div class="bg-white dark:bg-[#111827] rounded-2xl border border-slate-100 dark:border-slate-800 p-5 text-center text-slate-400 text-sm">
+        <p>Integração com o socket em tempo real</p>
+        <p class="text-xs mt-1">Esta tela receberá eventos via WebSocket</p>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MODAIS
+════════════════════════════════════════════════════ -->
+
+<!-- Template de modal reutilizável -->
+<template id="modal-base">
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 modal-backdrop bg-black/50" onclick="closeModalOnBackdrop(event)">
+    <div class="modal-content bg-white dark:bg-[#111827] rounded-2xl shadow-2xl w-full max-w-md animate-slide-up border border-slate-100 dark:border-slate-800">
+    </div>
+  </div>
+</template>
+
+<!-- Modal: Novo Aluno -->
+<div id="modal-aluno" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-4">
+  <div class="absolute inset-0 modal-backdrop bg-black/50" onclick="closeModal('modal-aluno')"></div>
+  <div class="relative bg-white dark:bg-[#111827] rounded-2xl shadow-2xl w-full max-w-md animate-slide-up border border-slate-100 dark:border-slate-800">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+      <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Novo aluno</h3>
+      <button onclick="closeModal('modal-aluno')" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="p-6 space-y-4">
+      <div class="space-y-1.5">
+        <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Nome completo</label>
+        <input type="text" placeholder="Ex: Miguel Alves" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-400 dark:focus:border-brand-500" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Matrícula</label>
+          <input type="text" placeholder="2026001" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-400 dark:focus:border-brand-500" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Nascimento</label>
+          <input type="date" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:border-brand-400 dark:focus:border-brand-500" />
+        </div>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Sala</label>
+        <select class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:border-brand-400 dark:focus:border-brand-500">
+          <option value="">Selecione a sala...</option>
+          <option>1º Ano A — Manhã</option>
+          <option>1º Ano B — Tarde</option>
+          <option>2º Ano A — Manhã</option>
+        </select>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 justify-end">
+      <button onclick="closeModal('modal-aluno')" class="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">Cancelar</button>
+      <button class="px-4 py-2 text-sm font-medium bg-brand-500 hover:bg-brand-600 text-white rounded-xl">Salvar aluno</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nova Sala -->
+<div id="modal-sala" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-4">
+  <div class="absolute inset-0 modal-backdrop bg-black/50" onclick="closeModal('modal-sala')"></div>
+  <div class="relative bg-white dark:bg-[#111827] rounded-2xl shadow-2xl w-full max-w-md animate-slide-up border border-slate-100 dark:border-slate-800">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+      <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Nova sala</h3>
+      <button onclick="closeModal('modal-sala')" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="p-6 space-y-4">
+      <div class="space-y-1.5">
+        <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Nome da sala</label>
+        <input type="text" placeholder="Ex: 3º Ano A" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-400 dark:focus:border-brand-500" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Sigla</label>
+          <input type="text" placeholder="3A" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-400 dark:focus:border-brand-500" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Ano letivo</label>
+          <input type="number" placeholder="2026" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-400 dark:focus:border-brand-500" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Turno</label>
+          <select class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:border-brand-400 dark:focus:border-brand-500">
+            <option>Manhã</option>
+            <option>Tarde</option>
+            <option>Integral</option>
+          </select>
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Período</label>
+          <select class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:border-brand-400 dark:focus:border-brand-500">
+            <option>Fundamental I</option>
+            <option>Fundamental II</option>
+            <option>Médio</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 justify-end">
+      <button onclick="closeModal('modal-sala')" class="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">Cancelar</button>
+      <button class="px-4 py-2 text-sm font-medium bg-brand-500 hover:bg-brand-600 text-white rounded-xl">Salvar sala</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nova Tag BLE -->
+<div id="modal-tag" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-4">
+  <div class="absolute inset-0 modal-backdrop bg-black/50" onclick="closeModal('modal-tag')"></div>
+  <div class="relative bg-white dark:bg-[#111827] rounded-2xl shadow-2xl w-full max-w-md animate-slide-up border border-slate-100 dark:border-slate-800">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+      <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Nova tag BLE</h3>
+      <button onclick="closeModal('modal-tag')" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="p-6 space-y-4">
+      <div class="space-y-1.5">
+        <label class="text-xs font-medium text-slate-500 dark:text-slate-400">MAC Address</label>
+        <input type="text" placeholder="AA:BB:CC:DD:EE:FF" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-400 dark:focus:border-brand-500" />
+        <p class="text-[10px] text-slate-400">Formato: AA:BB:CC:DD:EE:FF</p>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Apelido <span class="text-slate-400 font-normal">(opcional)</span></label>
+        <input type="text" placeholder="Ex: Chaveiro da Maria" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-400 dark:focus:border-brand-500" />
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Responsável</label>
+        <input type="text" placeholder="Nome do responsável" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-400 dark:focus:border-brand-500" />
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Vincular ao aluno</label>
+        <select class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:border-brand-400 dark:focus:border-brand-500">
+          <option value="">Selecionar aluno...</option>
+          <option>Miguel Alves — 3º Ano A</option>
+          <option>Laura Souza — 1º Ano B</option>
+          <option>Pedro Costa — 2º Ano C</option>
+        </select>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 justify-end">
+      <button onclick="closeModal('modal-tag')" class="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">Cancelar</button>
+      <button class="px-4 py-2 text-sm font-medium bg-brand-500 hover:bg-brand-600 text-white rounded-xl">Salvar tag</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Novo Usuário -->
+<div id="modal-usuario" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-4">
+  <div class="absolute inset-0 modal-backdrop bg-black/50" onclick="closeModal('modal-usuario')"></div>
+  <div class="relative bg-white dark:bg-[#111827] rounded-2xl shadow-2xl w-full max-w-md animate-slide-up border border-slate-100 dark:border-slate-800">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+      <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Novo usuário</h3>
+      <button onclick="closeModal('modal-usuario')" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="p-6 space-y-4">
+      <div class="space-y-1.5">
+        <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Nome</label>
+        <input type="text" placeholder="Nome completo" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-400 dark:focus:border-brand-500" />
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-xs font-medium text-slate-500 dark:text-slate-400">E-mail</label>
+        <input type="email" placeholder="usuario@escola.edu.br" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-400 dark:focus:border-brand-500" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Perfil</label>
+          <select id="perfil-select" onchange="toggleSalaField()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:border-brand-400 dark:focus:border-brand-500">
+            <option value="professor">Professor</option>
+            <option value="gestor">Gestor</option>
+          </select>
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Senha temporária</label>
+          <input type="password" placeholder="••••••••" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:border-brand-400 dark:focus:border-brand-500" />
+        </div>
+      </div>
+      <div id="sala-field" class="space-y-1.5">
+        <label class="text-xs font-medium text-slate-500 dark:text-slate-400">Sala vinculada</label>
+        <select class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:border-brand-400 dark:focus:border-brand-500">
+          <option value="">Selecionar sala...</option>
+          <option>1º Ano A — Manhã</option>
+          <option>2º Ano B — Tarde</option>
+        </select>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 justify-end">
+      <button onclick="closeModal('modal-usuario')" class="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">Cancelar</button>
+      <button class="px-4 py-2 text-sm font-medium bg-brand-500 hover:bg-brand-600 text-white rounded-xl">Criar usuário</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const pages = ['dashboard','chegadas','alunos','salas','tags','usuarios']
+  const titles = {
+    dashboard: 'Dashboard',
+    chegadas: 'Chegadas',
+    alunos: 'Alunos',
+    salas: 'Salas',
+    tags: 'Tags BLE',
+    usuarios: 'Usuários',
+  }
+
+  function navigate(page) {
+    pages.forEach(p => {
+      const el = document.getElementById('page-' + p)
+      if (el) el.classList.toggle('hidden', p !== page)
+    })
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'))
+    event.currentTarget.classList.add('active')
+    document.getElementById('page-title').textContent = titles[page]
+    closeSidebar()
+    return false
+  }
+
+  function openModal(id) {
+    const m = document.getElementById(id)
+    if (m) { m.classList.remove('hidden'); m.classList.add('flex') }
+  }
+
+  function closeModal(id) {
+    const m = document.getElementById(id)
+    if (m) { m.classList.add('hidden'); m.classList.remove('flex') }
+  }
+
+  function toggleTheme() {
+    document.documentElement.classList.toggle('dark')
+  }
+
+  function openSidebar() {
+    document.getElementById('sidebar').classList.add('open')
+    document.getElementById('sidebar-overlay').classList.remove('hidden')
+  }
+
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open')
+    document.getElementById('sidebar-overlay').classList.add('hidden')
+  }
+
+  function toggleSalaField() {
+    const perfil = document.getElementById('perfil-select').value
+    const campo = document.getElementById('sala-field')
+    campo.style.display = perfil === 'professor' ? 'block' : 'none'
+  }
+
+  // ESC fecha modal
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('[id^="modal-"]').forEach(m => {
+        m.classList.add('hidden'); m.classList.remove('flex')
+      })
+    }
+  })
+</script>
+</body>
+</html>

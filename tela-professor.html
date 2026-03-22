@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EscolaTag — Tela do Professor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['DM Sans','sans-serif'], mono: ['DM Mono','monospace'] },
+          animation: {
+            'ping-slow':   'ping 1.8s cubic-bezier(0,0,.2,1) infinite',
+            'slide-in':    'slideIn .4s cubic-bezier(.16,1,.3,1) both',
+            'pop':         'pop .35s cubic-bezier(.16,1,.3,1) both',
+            'fade-down':   'fadeDown .3s ease both',
+            'shake':       'shake .5s ease both',
+          },
+          keyframes: {
+            slideIn:   { from: { opacity:0, transform:'translateX(40px)' }, to: { opacity:1, transform:'translateX(0)' } },
+            pop:       { from: { opacity:0, transform:'scale(.88)' },       to: { opacity:1, transform:'scale(1)' } },
+            fadeDown:  { from: { opacity:0, transform:'translateY(-8px)' }, to: { opacity:1, transform:'translateY(0)' } },
+            shake:     { '0%,100%':{transform:'translateX(0)'},'20%':{transform:'translateX(-6px)'},'40%':{transform:'translateX(6px)'},'60%':{transform:'translateX(-4px)'},'80%':{transform:'translateX(4px)'} },
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    *{ box-sizing:border-box; }
+    body{ font-family:'DM Sans',sans-serif; -webkit-font-smoothing:antialiased; }
+
+    /* card de aluno aguardando */
+    .aluno-card {
+      transition: all .3s ease;
+      cursor: default;
+    }
+
+    /* estado: responsável chegou — aguardando liberação do professor */
+    .aluno-card.aguardando {
+      animation: pop .4s cubic-bezier(.16,1,.3,1) both;
+      border-color: #22c55e !important;
+      background: linear-gradient(135deg, rgba(34,197,94,.12) 0%, rgba(34,197,94,.04) 100%);
+    }
+    .dark .aluno-card.aguardando {
+      background: linear-gradient(135deg, rgba(34,197,94,.18) 0%, rgba(34,197,94,.06) 100%);
+    }
+
+    /* estado: liberado pelo professor */
+    .aluno-card.liberado {
+      opacity: .45;
+      border-color: transparent !important;
+      background: transparent !important;
+    }
+
+    /* ring pulsante no avatar */
+    .avatar-ring {
+      position: absolute; inset: -4px;
+      border-radius: 9999px;
+      border: 2px solid #22c55e;
+      animation: ping 1.6s cubic-bezier(0,0,.2,1) infinite;
+      opacity: 0;
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar{ width:4px; }
+    ::-webkit-scrollbar-track{ background:transparent; }
+    ::-webkit-scrollbar-thumb{ background:#334155; border-radius:99px; }
+
+    /* toast */
+    #toast-container {
+      position:fixed; top:16px; right:16px; z-index:100;
+      display:flex; flex-direction:column; gap:10px;
+      pointer-events:none;
+    }
+    .toast {
+      pointer-events:all;
+      animation: slideIn .4s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    /* badge de contagem */
+    .badge-count {
+      animation: pop .3s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    /* botão liberar pulse */
+    .btn-liberar {
+      animation: pop .3s cubic-bezier(.16,1,.3,1) .15s both;
+      position:relative;
+      overflow:hidden;
+    }
+    .btn-liberar::after {
+      content:'';
+      position:absolute; inset:0;
+      background:rgba(255,255,255,.15);
+      transform:scaleX(0);
+      transform-origin:left;
+      transition:transform .2s ease;
+    }
+    .btn-liberar:hover::after { transform:scaleX(1); }
+
+    .dot-pulse {
+      width:8px; height:8px; border-radius:50%;
+      background:#22c55e;
+      box-shadow: 0 0 0 0 rgba(34,197,94,.6);
+      animation: dotPulse 1.8s ease infinite;
+    }
+    @keyframes dotPulse {
+      0%   { box-shadow: 0 0 0 0   rgba(34,197,94,.6); }
+      70%  { box-shadow: 0 0 0 8px rgba(34,197,94,0);  }
+      100% { box-shadow: 0 0 0 0   rgba(34,197,94,0);  }
+    }
+
+    .sound-btn.active svg { color:#22c55e; }
+  </style>
+</head>
+
+<body class="bg-[#0b0f1a] text-slate-100 min-h-screen flex flex-col">
+
+<!-- ═══ HEADER ═══ -->
+<header class="sticky top-0 z-30 bg-[#0b0f1a]/90 backdrop-blur-md border-b border-slate-800 px-4 md:px-6 h-16 flex items-center gap-4">
+
+  <!-- Logo + sala -->
+  <div class="flex items-center gap-3 flex-1 min-w-0">
+    <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
+      <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/>
+      </svg>
+    </div>
+    <div class="min-w-0">
+      <div class="flex items-center gap-2">
+        <span class="font-semibold text-sm text-white tracking-tight truncate" id="sala-nome">3º Ano A</span>
+        <span class="text-slate-500 text-xs hidden sm:block">·</span>
+        <span class="text-slate-400 text-xs hidden sm:block" id="prof-nome">Prof. Carla Andrade</span>
+      </div>
+      <div class="flex items-center gap-1.5 mt-0.5">
+        <span id="conn-dot" class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+        <span id="conn-label" class="text-[10px] text-slate-500">Conectando...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contadores -->
+  <div class="flex items-center gap-2">
+    <div class="hidden sm:flex flex-col items-center bg-slate-800/60 rounded-xl px-3 py-1.5 min-w-[52px]">
+      <span class="text-[10px] text-slate-500 leading-none">alunos</span>
+      <span id="total-alunos" class="text-sm font-semibold text-white leading-tight mt-0.5">0</span>
+    </div>
+    <div class="flex flex-col items-center bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3 py-1.5 min-w-[52px]">
+      <span class="text-[10px] text-emerald-400 leading-none">aguard.</span>
+      <span id="count-aguardando" class="text-sm font-semibold text-emerald-400 leading-tight mt-0.5">0</span>
+    </div>
+    <div class="flex flex-col items-center bg-slate-800/60 rounded-xl px-3 py-1.5 min-w-[52px]">
+      <span class="text-[10px] text-slate-500 leading-none">liberados</span>
+      <span id="count-liberados" class="text-sm font-semibold text-slate-300 leading-tight mt-0.5">0</span>
+    </div>
+  </div>
+
+  <!-- Ações -->
+  <div class="flex items-center gap-1">
+    <!-- Som -->
+    <button id="btn-som" onclick="toggleSom()" class="sound-btn active w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Ativar/desativar som">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"/>
+      </svg>
+    </button>
+    <!-- Tema -->
+    <button onclick="document.documentElement.classList.toggle('dark')" class="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ═══ BANNER DE ALERTA (aparece quando há aguardando) ═══ -->
+<div id="banner-alerta" class="hidden bg-emerald-500/10 border-b border-emerald-500/20 px-4 md:px-6 py-2.5 flex items-center gap-3 animate-fade-down">
+  <span class="dot-pulse flex-shrink-0"></span>
+  <p class="text-sm text-emerald-400 font-medium flex-1">
+    <span id="banner-texto">Responsável chegou — libere o aluno</span>
+  </p>
+  <button onclick="liberarTodos()" class="text-xs text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/10 px-3 py-1 rounded-lg transition-colors flex-shrink-0">
+    Liberar todos
+  </button>
+</div>
+
+<!-- ═══ CONTEÚDO PRINCIPAL ═══ -->
+<main class="flex-1 p-4 md:p-6">
+
+  <!-- Filtro rápido -->
+  <div class="flex items-center gap-2 mb-4">
+    <div class="flex bg-slate-800/60 rounded-xl p-1 gap-1">
+      <button onclick="filtrar('todos')" id="filtro-todos" class="filtro-btn text-xs px-3 py-1.5 rounded-lg bg-slate-700 text-white font-medium transition-colors">Todos</button>
+      <button onclick="filtrar('aguardando')" id="filtro-aguardando" class="filtro-btn text-xs px-3 py-1.5 rounded-lg text-slate-400 font-medium transition-colors hover:text-white">Aguardando</button>
+      <button onclick="filtrar('liberados')" id="filtro-liberados" class="filtro-btn text-xs px-3 py-1.5 rounded-lg text-slate-400 font-medium transition-colors hover:text-white">Liberados</button>
+    </div>
+    <div class="flex items-center gap-2 bg-slate-800/40 border border-slate-700/50 rounded-xl px-3 py-2 flex-1 max-w-64">
+      <svg class="w-3.5 h-3.5 text-slate-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+      <input type="text" id="busca" oninput="buscarAluno(this.value)" placeholder="Buscar aluno..." class="bg-transparent text-xs text-slate-300 placeholder-slate-600 flex-1 focus:outline-none" />
+    </div>
+  </div>
+
+  <!-- Grid de alunos -->
+  <div id="grid-alunos" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+    <!-- Populado via JS -->
+  </div>
+
+  <!-- Empty state -->
+  <div id="empty-state" class="hidden flex-col items-center justify-center py-24 text-center">
+    <div class="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center mb-4">
+      <svg class="w-8 h-8 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+      </svg>
+    </div>
+    <p class="text-slate-500 text-sm">Nenhum aluno neste filtro</p>
+  </div>
+</main>
+
+<!-- ═══ TOAST CONTAINER ═══ -->
+<div id="toast-container"></div>
+
+<!-- ═══ MODAL DE CONFIRMAÇÃO ═══ -->
+<div id="modal-confirmar" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="fecharModal()"></div>
+  <div class="relative bg-[#111827] border border-slate-700 rounded-2xl w-full max-w-sm animate-pop shadow-2xl">
+    <div class="p-6 text-center">
+      <div id="modal-avatar" class="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-xl font-semibold"></div>
+      <h3 class="font-semibold text-white text-base" id="modal-nome">—</h3>
+      <p class="text-slate-400 text-sm mt-1">Responsável chegou para buscar</p>
+      <div class="mt-3 bg-slate-800/60 rounded-xl px-4 py-2.5 inline-flex flex-col items-center gap-0.5">
+        <span class="text-xs text-slate-500">Responsável</span>
+        <span class="text-sm font-medium text-slate-200" id="modal-responsavel">—</span>
+      </div>
+      <div class="mt-1">
+        <span class="text-[10px] font-mono text-slate-600" id="modal-mac">—</span>
+      </div>
+    </div>
+    <div class="px-6 pb-6 flex gap-3">
+      <button onclick="fecharModal()" class="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-400 text-sm font-medium hover:bg-slate-800 transition-colors">
+        Cancelar
+      </button>
+      <button id="btn-confirmar-liberar" class="btn-liberar flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors">
+        ✓ Liberar aluno
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// CONFIGURAÇÃO
+// ═══════════════════════════════════════
+const CONFIG = {
+  socketUrl: 'http://localhost:3001',
+  salaId:    'UUID-DA-SALA-AQUI',        // Substitua pelo UUID real da sala
+  salaNome:  '3º Ano A',
+  profNome:  'Prof. Carla Andrade',
+  somAtivo:  true,
+}
+
+// ═══════════════════════════════════════
+// DADOS DOS ALUNOS (virá da API Laravel)
+// ═══════════════════════════════════════
+let alunos = [
+  { id:'1', nome:'Ana Clara Silva',     iniciais:'AC', cor:'from-violet-400 to-violet-600',   status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'2', nome:'Bruno Oliveira',      iniciais:'BO', cor:'from-sky-400 to-sky-600',         status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'3', nome:'Camila Rocha',        iniciais:'CR', cor:'from-pink-400 to-pink-600',       status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'4', nome:'Daniel Ferreira',     iniciais:'DF', cor:'from-amber-400 to-orange-500',    status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'5', nome:'Eduarda Martins',     iniciais:'EM', cor:'from-teal-400 to-teal-600',       status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'6', nome:'Felipe Santos',       iniciais:'FS', cor:'from-indigo-400 to-indigo-600',   status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'7', nome:'Gabriela Lima',       iniciais:'GL', cor:'from-rose-400 to-rose-600',       status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'8', nome:'Henrique Costa',      iniciais:'HC', cor:'from-emerald-400 to-emerald-600', status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'9', nome:'Isabela Novaes',      iniciais:'IN', cor:'from-cyan-400 to-cyan-600',       status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'10',nome:'João Pedro Alves',    iniciais:'JP', cor:'from-blue-400 to-blue-600',       status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'11',nome:'Karen Pereira',       iniciais:'KP', cor:'from-fuchsia-400 to-fuchsia-600', status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'12',nome:'Lucas Mendonça',      iniciais:'LM', cor:'from-lime-400 to-lime-600',       status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'13',nome:'Mariana Souza',       iniciais:'MS', cor:'from-orange-400 to-orange-600',   status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'14',nome:'Nicolas Barbosa',     iniciais:'NB', cor:'from-red-400 to-red-600',         status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'15',nome:'Olivia Castro',       iniciais:'OC', cor:'from-yellow-400 to-yellow-600',   status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'16',nome:'Pedro Henrique',      iniciais:'PH', cor:'from-violet-500 to-purple-600',   status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'17',nome:'Rafaela Torres',      iniciais:'RT', cor:'from-sky-500 to-blue-600',        status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+  { id:'18',nome:'Samuel Carvalho',     iniciais:'SC', cor:'from-green-400 to-green-600',     status:'esperando', responsavel:null, mac:null, chegadaEm:null },
+]
+
+let filtroAtual = 'todos'
+let alunoParaLiberar = null
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+function render() {
+  const busca = document.getElementById('busca').value.toLowerCase()
+
+  const visiveis = alunos.filter(a => {
+    const matchBusca = a.nome.toLowerCase().includes(busca)
+    const matchFiltro =
+      filtroAtual === 'todos'       ? true :
+      filtroAtual === 'aguardando'  ? a.status === 'aguardando' :
+      filtroAtual === 'liberados'   ? a.status === 'liberado' : true
+    return matchBusca && matchFiltro
+  })
+
+  const grid = document.getElementById('grid-alunos')
+  const empty = document.getElementById('empty-state')
+
+  if (visiveis.length === 0) {
+    grid.innerHTML = ''
+    empty.classList.remove('hidden')
+    empty.classList.add('flex')
+    return
+  }
+  empty.classList.add('hidden')
+  empty.classList.remove('flex')
+
+  // Ordena: aguardando primeiro, depois esperando, depois liberados
+  const ordem = { aguardando:0, esperando:1, liberado:2 }
+  visiveis.sort((a,b) => ordem[a.status] - ordem[b.status])
+
+  grid.innerHTML = visiveis.map(a => cardHTML(a)).join('')
+
+  // Atualiza contadores
+  const aguardando = alunos.filter(a => a.status === 'aguardando').length
+  const liberados  = alunos.filter(a => a.status === 'liberado').length
+  document.getElementById('total-alunos').textContent   = alunos.length
+  document.getElementById('count-aguardando').textContent = aguardando
+  document.getElementById('count-liberados').textContent  = liberados
+
+  // Banner
+  const banner = document.getElementById('banner-alerta')
+  if (aguardando > 0) {
+    banner.classList.remove('hidden')
+    banner.classList.add('flex')
+    document.getElementById('banner-texto').textContent =
+      aguardando === 1
+        ? '1 responsável chegou — libere o aluno'
+        : `${aguardando} responsáveis chegaram — libere os alunos`
+  } else {
+    banner.classList.add('hidden')
+    banner.classList.remove('flex')
+  }
+}
+
+function cardHTML(a) {
+  const isAguardando = a.status === 'aguardando'
+  const isLiberado   = a.status === 'liberado'
+
+  return `
+  <div id="card-${a.id}"
+    class="aluno-card relative bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4 flex flex-col items-center gap-3 select-none
+      ${isAguardando ? 'aguardando cursor-pointer' : ''}
+      ${isLiberado   ? 'liberado'                  : ''}"
+    ${isAguardando ? `onclick="abrirModal('${a.id}')"` : ''}
+  >
+    <!-- Avatar -->
+    <div class="relative">
+      ${isAguardando ? '<span class="avatar-ring"></span>' : ''}
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${a.cor} flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+        ${a.iniciais}
+      </div>
+      ${isLiberado ? `
+        <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-[#0b0f1a] flex items-center justify-center">
+          <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+        </div>` : ''}
+      ${isAguardando ? `
+        <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-[#0b0f1a] flex items-center justify-center animate-bounce">
+          <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        </div>` : ''}
+    </div>
+
+    <!-- Nome -->
+    <div class="text-center w-full">
+      <p class="text-xs font-medium leading-tight
+        ${isAguardando ? 'text-white' : isLiberado ? 'text-slate-600' : 'text-slate-300'}
+        line-clamp-2">
+        ${a.nome}
+      </p>
+      ${isAguardando ? `
+        <p class="text-[10px] text-emerald-400 font-medium mt-1 truncate">${a.responsavel ?? 'Responsável'}</p>
+        <p class="text-[9px] font-mono text-slate-600 truncate">${formatarHora(a.chegadaEm)}</p>
+      ` : ''}
+      ${isLiberado ? `
+        <p class="text-[10px] text-slate-600 mt-1">Liberado</p>
+      ` : ''}
+    </div>
+
+    <!-- Botão liberar (visível em aguardando) -->
+    ${isAguardando ? `
+      <button onclick="event.stopPropagation();abrirModal('${a.id}')"
+        class="btn-liberar w-full py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-semibold transition-colors">
+        Liberar
+      </button>
+    ` : ''}
+  </div>`
+}
+
+// ═══════════════════════════════════════
+// MODAL DE CONFIRMAÇÃO
+// ═══════════════════════════════════════
+function abrirModal(id) {
+  const a = alunos.find(x => x.id === id)
+  if (!a || a.status !== 'aguardando') return
+  alunoParaLiberar = id
+
+  const avatar = document.getElementById('modal-avatar')
+  avatar.className = `w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-xl font-semibold bg-gradient-to-br ${a.cor}`
+  avatar.textContent = a.iniciais
+
+  document.getElementById('modal-nome').textContent       = a.nome
+  document.getElementById('modal-responsavel').textContent = a.responsavel ?? '—'
+  document.getElementById('modal-mac').textContent        = a.mac ?? '—'
+
+  const modal = document.getElementById('modal-confirmar')
+  modal.classList.remove('hidden')
+  modal.classList.add('flex')
+
+  document.getElementById('btn-confirmar-liberar').onclick = () => liberarAluno(id)
+}
+
+function fecharModal() {
+  const modal = document.getElementById('modal-confirmar')
+  modal.classList.add('hidden')
+  modal.classList.remove('flex')
+  alunoParaLiberar = null
+}
+
+// ═══════════════════════════════════════
+// AÇÕES
+// ═══════════════════════════════════════
+function liberarAluno(id) {
+  const a = alunos.find(x => x.id === id)
+  if (!a) return
+  a.status = 'liberado'
+  fecharModal()
+  render()
+  toast(`✓ ${a.nome} liberado`, 'success')
+
+  // Aqui você chamaria a API Laravel para registrar a liberação:
+  // fetch('/api/alunos/' + id + '/liberar', { method:'POST' })
+}
+
+function liberarTodos() {
+  const aguardando = alunos.filter(a => a.status === 'aguardando')
+  aguardando.forEach(a => a.status = 'liberado')
+  render()
+  if (aguardando.length > 0)
+    toast(`✓ ${aguardando.length} aluno(s) liberado(s)`, 'success')
+}
+
+function filtrar(tipo) {
+  filtroAtual = tipo
+  document.querySelectorAll('.filtro-btn').forEach(b => {
+    b.classList.remove('bg-slate-700','text-white')
+    b.classList.add('text-slate-400')
+  })
+  const btn = document.getElementById('filtro-' + tipo)
+  btn.classList.add('bg-slate-700','text-white')
+  btn.classList.remove('text-slate-400')
+  render()
+}
+
+function buscarAluno(v) { render() }
+
+// ═══════════════════════════════════════
+// SOCKET.IO
+// ═══════════════════════════════════════
+function conectarSocket() {
+  const socket = io(CONFIG.socketUrl, {
+    transports: ['websocket'],
+    reconnection: true,
+    reconnectionDelay: 2000,
+  })
+
+  socket.on('connect', () => {
+    setConStatus(true)
+    socket.emit('entrar', { tipo: 'professor', sala_id: CONFIG.salaId })
+    console.log('[Socket] Conectado:', socket.id)
+  })
+
+  socket.on('disconnect', () => {
+    setConStatus(false)
+    console.log('[Socket] Desconectado')
+  })
+
+  /**
+   * Evento principal: responsável chegou
+   * Payload: { aluno_id, aluno_nome, responsavel, mac_address, chegou_em, sala_id, ... }
+   */
+  socket.on('responsavel_chegou', (evento) => {
+    console.log('[Socket] Chegada:', evento)
+    processarChegada(evento)
+  })
+}
+
+function processarChegada(evento) {
+  // Tenta encontrar o aluno pelo ID
+  let aluno = alunos.find(a => a.id === evento.aluno_id)
+
+  // Se não encontrar (aluno não estava na lista local), cria entrada dinâmica
+  if (!aluno) {
+    aluno = {
+      id:          evento.aluno_id,
+      nome:        evento.aluno_nome,
+      iniciais:    gerarIniciais(evento.aluno_nome),
+      cor:         corAleatoria(),
+      status:      'esperando',
+      responsavel: null,
+      mac:         null,
+      chegadaEm:   null,
+    }
+    alunos.push(aluno)
+  }
+
+  // Só notifica se ainda não está aguardando ou liberado
+  if (aluno.status === 'liberado') return
+
+  aluno.status     = 'aguardando'
+  aluno.responsavel = evento.responsavel ?? evento.tag_apelido ?? 'Responsável'
+  aluno.mac        = evento.mac_address
+  aluno.chegadaEm  = evento.chegou_em
+
+  render()
+
+  // Toast de notificação
+  toast(`🔔 ${evento.responsavel ?? 'Responsável'} chegou buscar ${aluno.nome}`, 'alert')
+
+  // Som
+  if (CONFIG.somAtivo) tocarSom()
+
+  // Vibração (tablets com suporte)
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200])
+}
+
+// ═══════════════════════════════════════
+// UTILITÁRIOS
+// ═══════════════════════════════════════
+function setConStatus(online) {
+  const dot   = document.getElementById('conn-dot')
+  const label = document.getElementById('conn-label')
+  dot.className   = `w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-500' : 'bg-slate-600'}`
+  label.textContent = online ? 'Ao vivo' : 'Reconectando...'
+  label.className   = `text-[10px] ${online ? 'text-emerald-400' : 'text-slate-500'}`
+}
+
+function formatarHora(iso) {
+  if (!iso) return ''
+  return new Date(iso).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })
+}
+
+function gerarIniciais(nome) {
+  return nome.split(' ').filter(Boolean).slice(0,2).map(p=>p[0].toUpperCase()).join('')
+}
+
+const cores = [
+  'from-violet-400 to-violet-600','from-sky-400 to-sky-600','from-pink-400 to-pink-600',
+  'from-amber-400 to-orange-500','from-teal-400 to-teal-600','from-indigo-400 to-indigo-600',
+  'from-rose-400 to-rose-600','from-emerald-400 to-emerald-600','from-cyan-400 to-cyan-600',
+]
+function corAleatoria() { return cores[Math.floor(Math.random()*cores.length)] }
+
+// ─── Toast ───────────────────────────────────────
+function toast(msg, tipo = 'info') {
+  const tc  = document.getElementById('toast-container')
+  const el  = document.createElement('div')
+  const cor = tipo==='success' ? 'bg-emerald-500' : tipo==='alert' ? 'bg-amber-500' : 'bg-slate-700'
+  el.className = `toast flex items-center gap-3 ${cor} text-white text-sm font-medium px-4 py-3 rounded-2xl shadow-xl max-w-xs`
+  el.innerHTML = `<span class="flex-1">${msg}</span>
+    <button onclick="this.parentElement.remove()" class="opacity-60 hover:opacity-100 flex-shrink-0">
+      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>`
+  tc.appendChild(el)
+  setTimeout(() => el.remove(), 5000)
+}
+
+// ─── Som (AudioContext) ────────────────────────────
+let audioCtx = null
+function tocarSom() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+    const osc  = audioCtx.createOscillator()
+    const gain = audioCtx.createGain()
+    osc.connect(gain)
+    gain.connect(audioCtx.destination)
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + .15)
+    gain.gain.setValueAtTime(.4, audioCtx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + .4)
+    osc.start(audioCtx.currentTime)
+    osc.stop(audioCtx.currentTime + .4)
+  } catch(e) { /* silencioso */ }
+}
+
+function toggleSom() {
+  CONFIG.somAtivo = !CONFIG.somAtivo
+  const btn = document.getElementById('btn-som')
+  btn.classList.toggle('active', CONFIG.somAtivo)
+  toast(CONFIG.somAtivo ? 'Som ativado' : 'Som desativado', 'info')
+}
+
+// ─── ESC fecha modal ──────────────────────────────
+document.addEventListener('keydown', e => { if(e.key==='Escape') fecharModal() })
+
+// ═══════════════════════════════════════
+// SIMULAÇÃO (remova em produção)
+// ═══════════════════════════════════════
+function simularChegada() {
+  const pendentes = alunos.filter(a => a.status === 'esperando')
+  if (pendentes.length === 0) return
+  const aluno = pendentes[Math.floor(Math.random() * pendentes.length)]
+  const responsaveis = ['Maria Silva','João Alves','Ana Costa','Pedro Souza','Lucia Ferreira']
+  processarChegada({
+    aluno_id:   aluno.id,
+    aluno_nome: aluno.nome,
+    responsavel: responsaveis[Math.floor(Math.random()*responsaveis.length)],
+    mac_address: 'AA:BB:CC:DD:EE:' + Math.floor(Math.random()*99).toString(16).padStart(2,'0').toUpperCase(),
+    chegou_em:  new Date().toISOString(),
+    sala_id:    CONFIG.salaId,
+  })
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+document.getElementById('sala-nome').textContent = CONFIG.salaNome
+document.getElementById('prof-nome').textContent = CONFIG.profNome
+render()
+
+// Conecta socket (comente esta linha se quiser testar apenas com simulação)
+// conectarSocket()
+
+// Simulação automática — remova em produção
+setTimeout(() => simularChegada(), 2500)
+setTimeout(() => simularChegada(), 5500)
+</script>
+
+<!-- Botão de simulação — remova em produção -->
+<div class="fixed bottom-4 right-4 z-40">
+  <button onclick="simularChegada()"
+    class="flex items-center gap-2 bg-slate-800 border border-slate-700 hover:border-emerald-500/50 hover:bg-slate-700 text-slate-300 text-xs font-medium px-4 py-2.5 rounded-xl shadow-lg transition-all">
+    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/></svg>
+    Simular chegada
+  </button>
+</div>
+
+</body>
+</html>
