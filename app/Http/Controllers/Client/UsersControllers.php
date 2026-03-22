@@ -38,12 +38,7 @@ class UsersControllers extends ClientController
         return $this->success($user, 201);
     }
 
-    public function setEscritorio(string $escritorio_id){
-        $user = auth()->user();
-        $user->escritorio_id = $escritorio_id;
-        $user->save();
-        return $this->success($user);
-    }
+  
     public function setDarkMode(string $dark_mode){
         $user = auth()->user();
         $user->dark_mode = $dark_mode === 'true' ? true : false;

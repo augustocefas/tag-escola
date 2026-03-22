@@ -10,28 +10,18 @@ use Stancl\Tenancy\Middleware\{
 
 use App\Http\Controllers\Client\{
     AuthController as AuthClientController,
-    ClientController,
-    TipoDominioController,
-    DominioController,
-    UsersControllers,
+    AlunoController,
+    AlunoSalaController,
+    AnexoController,
     ArquivoController,
-    EscritorioController,
-    PessoaController,
-    ProcuracaoController,
-    PessoaAnexoController, // Added PessoaAnexoController
-    ProcessoController,
-    ProcessoAdvogadoController,
-    ProcessoLocalizadorController,
-    ProcessoMovimentoController,
-    ProcessoAudienciaController,
-    ProcessoAtaController,
-    ProcessoAnexoController,
     ConfigController,
-    ChamadoController,
-    ChamadoMovimentoController,
-    PdfSignController,
-    DashboardController,
-    CertificadoController
+    DominioController,
+    SalaController,
+    TagAlunoController,
+    TagController,
+    TpDominioController,
+    UsersControllers,
+    UsersSalaController
 };
 
 
@@ -50,14 +40,6 @@ Route::middleware([
     Route::get('/manut/user-dev-create', [AuthClientController::class, 'devCreateUser']);
     Route::get('/manut/user-dev-delete', [AuthClientController::class, 'devDeleteUser']);
 
-    Route::post('/pdf/sign', [PdfSignController::class, 'sign']);
-    Route::get('/pdf/signature-info/{filename}', [PdfSignController::class, 'getPdfSimpleSignature']);
-    Route::get('/pdf/validate-signature/{filename}', [PdfSignController::class, 'isValidSignature']);
-    Route::post('/pdf/certificate-expiry', [PdfSignController::class, 'getCertificateExpiry']);
-    Route::prefix('arquivo')->group(function () {
-        Route::match(['get', 'post'], '/{id}/{download?}', [ArquivoController::class, 'get']);
-    });
-
     Route::prefix('auth')->group(function () {
         Route::post('/login', [AuthClientController::class, 'login']);
         Route::get('/dev', [AuthClientController::class, 'dev']);
@@ -71,148 +53,96 @@ Route::middleware([
             Route::match(['get', 'post'], 'refresh', [AuthClientController::class, 'refresh']);
             Route::match(['get', 'post'], 'me', [AuthClientController::class, 'me']);
         });
-        Route::prefix('tipo-dominio')->group(function (){
-            Route::match(['get', 'post'], '/', [TipoDominioController::class, 'index']);
-            Route::post('/store', [TipoDominioController::class, 'store']);
-            Route::put('/{tipo_dominio_id}', [TipoDominioController::class, 'update']);
-            Route::get('/get/{dominio_id}', [TipoDominioController::class, 'get']);
-            Route::delete('/{dominio_id}', [TipoDominioController::class, 'destroy']);
+
+        Route::prefix('alunos')->group(function () {
+            Route::get('/', [AlunoController::class, 'index']);
+            Route::post('/', [AlunoController::class, 'store']);
+            Route::get('/{id}', [AlunoController::class, 'show']);
+            Route::put('/{id}', [AlunoController::class, 'update']);
+            Route::delete('/{id}', [AlunoController::class, 'destroy']);
         });
-        Route::prefix('dominio')->group(function (){
-            Route::match(['get', 'post'], '/index/{tipo_dominio_id}', [DominioController::class, 'index']);
-            Route::post('/store', [DominioController::class, 'store']);
-            Route::put('/{dominio_id}', [DominioController::class, 'update']);
-            Route::get('/get/{dominio_id}', [DominioController::class, 'get']);
-            Route::delete('/{dominio_id}', [DominioController::class, 'destroy']);
+
+        Route::prefix('aluno-sala')->group(function () {
+            Route::get('/', [AlunoSalaController::class, 'index']);
+            Route::post('/', [AlunoSalaController::class, 'store']);
+            Route::get('/{id}', [AlunoSalaController::class, 'show']);
+            Route::put('/{id}', [AlunoSalaController::class, 'update']);
+            Route::delete('/{id}', [AlunoSalaController::class, 'destroy']);
         });
-        Route::prefix('usuarios')->group(function (){
+
+        Route::prefix('anexos')->group(function () {
+            Route::post('/', [AnexoController::class, 'store']);
+        });
+
+        Route::prefix('arquivos')->group(function () {
+            Route::get('/{id}/{download?}', [ArquivoController::class, 'get']);
+        });
+
+        Route::prefix('configs')->group(function () {
+            Route::get('/', [ConfigController::class, 'index']);
+            Route::post('/', [ConfigController::class, 'store']);
+            Route::get('/{id}', [ConfigController::class, 'getById']);
+            Route::put('/{id}', [ConfigController::class, 'update']);
+            Route::delete('/{id}', [ConfigController::class, 'destroy']);
+        });
+
+        Route::prefix('dominios')->group(function () {
+            Route::get('/', [DominioController::class, 'index']);
+            Route::post('/', [DominioController::class, 'store']);
+            Route::get('/{id}', [DominioController::class, 'show']);
+            Route::put('/{id}', [DominioController::class, 'update']);
+            Route::delete('/{id}', [DominioController::class, 'destroy']);
+        });
+
+        Route::prefix('salas')->group(function () {
+            Route::get('/', [SalaController::class, 'index']);
+            Route::post('/', [SalaController::class, 'store']);
+            Route::get('/{id}', [SalaController::class, 'show']);
+            Route::put('/{id}', [SalaController::class, 'update']);
+            Route::delete('/{id}', [SalaController::class, 'destroy']);
+        });
+
+        Route::prefix('tag-aluno')->group(function () {
+            Route::get('/', [TagAlunoController::class, 'index']);
+            Route::post('/', [TagAlunoController::class, 'store']);
+            Route::get('/{id}', [TagAlunoController::class, 'show']);
+            Route::put('/{id}', [TagAlunoController::class, 'update']);
+            Route::delete('/{id}', [TagAlunoController::class, 'destroy']);
+        });
+
+        Route::prefix('tags')->group(function () {
+            Route::get('/', [TagController::class, 'index']);
+            Route::post('/', [TagController::class, 'store']);
+            Route::get('/{id}', [TagController::class, 'show']);
+            Route::put('/{id}', [TagController::class, 'update']);
+            Route::delete('/{id}', [TagController::class, 'destroy']);
+        });
+
+        Route::prefix('tp-dominios')->group(function () {
+            Route::get('/', [TpDominioController::class, 'index']);
+            Route::post('/', [TpDominioController::class, 'store']);
+            Route::get('/{id}', [TpDominioController::class, 'show']);
+            Route::put('/{id}', [TpDominioController::class, 'update']);
+            Route::delete('/{id}', [TpDominioController::class, 'destroy']);
+        });
+
+        Route::prefix('usuarios')->group(function () {
             Route::get('/', [UsersControllers::class, 'index']);
             Route::post('/', [UsersControllers::class, 'store']);
-            Route::get('/set-escritorio/{escritorio_id}', [UsersControllers::class, 'setEscritorio']);
-            Route::get('/set-darkmode/{dark_mode}', [UsersControllers::class, 'setDarkMode']);
-            Route::put('/{user_id}', [UsersControllers::class, 'update']);
-            Route::delete('/{user_id}', [UsersControllers::class, 'destroy']);
+            Route::put('/{id}', [UsersControllers::class, 'update']);
+            Route::delete('/{id}', [UsersControllers::class, 'destroy']);
+            Route::post('/set-dark-mode/{dark_mode}', [UsersControllers::class, 'setDarkMode']);
             Route::post('/change-password', [UsersControllers::class, 'changePassword']);
         });
 
-        Route::prefix('escritorio')->group(function (){
-            Route::get('/', [EscritorioController::class, 'index']);
-            Route::post('/', [EscritorioController::class, 'store']);
-            Route::put('/{escritorio_id}', [EscritorioController::class, 'update']);
-            Route::get('/get/{escritorio_id}', [EscritorioController::class, 'getById']);
-            Route::delete('/{escritorio_id}', [EscritorioController::class, 'destroy']);
+        Route::prefix('usuario-sala')->group(function () {
+            Route::get('/', [UsersSalaController::class, 'index']);
+            Route::post('/', [UsersSalaController::class, 'store']);
+            Route::get('/{id}', [UsersSalaController::class, 'show']);
+            Route::put('/{id}', [UsersSalaController::class, 'update']);
+            Route::delete('/{id}', [UsersSalaController::class, 'destroy']);
         });
-        Route::prefix('pessoa')->group(function (){
-            Route::get('/', [PessoaController::class, 'index']);
-            Route::post('/{pessoa_id}/ficha-cadastral', [PessoaController::class, 'ficha_cadastral']);
-            Route::post('/', [PessoaController::class, 'store']);
-            Route::put('/{pessoa_id}', [PessoaController::class, 'update']);
-            Route::get('/get/{pessoa_id}', [PessoaController::class, 'getById']);
-            Route::delete('/{pessoa_id}', [PessoaController::class, 'destroy']);
-
-        });
-        Route::prefix('procuracao')->group(function (){
-            Route::get('/', [ProcuracaoController::class, 'index']);
-            Route::post('/', [ProcuracaoController::class, 'store']);
-            Route::post('/{procuracao_id}/gerar', [ProcuracaoController::class, 'gerarProcuracao']);
-            Route::put('/{procuracao_id}', [ProcuracaoController::class, 'update']);
-            Route::get('/get/{procuracao_id}', [ProcuracaoController::class, 'getById']);
-            Route::delete('/{procuracao_id}', [ProcuracaoController::class, 'destroy']);
-        });
-        Route::prefix('pessoa-anexo')->group(function (){
-            Route::get('/', [PessoaAnexoController::class, 'index']);
-            Route::post('/', [PessoaAnexoController::class, 'store']);
-            Route::put('/{pessoa_anexo_id}', [PessoaAnexoController::class, 'update']);
-            Route::get('/get/{pessoa_anexo_id}', [PessoaAnexoController::class, 'getById']);
-            Route::delete('/{pessoa_anexo_id}', [PessoaAnexoController::class, 'destroy']);
-            Route::get('/download/{pessoa_anexo_id}', [PessoaAnexoController::class, 'download']);
-        });
-        Route::prefix('processo')->group(function (){
-            Route::get('/', [ProcessoController::class, 'index']);
-            Route::post('/', [ProcessoController::class, 'store']);
-            Route::put('/{processo_id}', [ProcessoController::class, 'update']);
-            Route::get('/get/{processo_id}', [ProcessoController::class, 'getById']);
-            Route::delete('/{processo_id}', [ProcessoController::class, 'destroy']);
-        });
-        Route::prefix('processo-advogado')->group(function (){
-            Route::get('/', [ProcessoAdvogadoController::class, 'index']);
-            Route::post('/', [ProcessoAdvogadoController::class, 'store']);
-            Route::put('/{processo_advogado_id}', [ProcessoAdvogadoController::class, 'update']);
-            Route::get('/get/{processo_advogado_id}', [ProcessoAdvogadoController::class, 'getById']);
-            Route::delete('/{processo_advogado_id}', [ProcessoAdvogadoController::class, 'destroy']);
-        });
-        Route::prefix('processo-localizador')->group(function (){
-            Route::get('/', [ProcessoLocalizadorController::class, 'index']);
-            Route::post('/', [ProcessoLocalizadorController::class, 'store']);
-            Route::put('/{processo_localizador_id}', [ProcessoLocalizadorController::class, 'update']);
-            Route::get('/get/{processo_localizador_id}', [ProcessoLocalizadorController::class, 'getById']);
-            Route::delete('/{processo_localizador_id}', [ProcessoLocalizadorController::class, 'destroy']);
-        });
-        Route::prefix('processo-movimento')->group(function (){
-            Route::get('/', [ProcessoMovimentoController::class, 'index']);
-            Route::post('/', [ProcessoMovimentoController::class, 'store']);
-            Route::put('/{processo_movimento_id}', [ProcessoMovimentoController::class, 'update']);
-            Route::get('/get/{processo_movimento_id}', [ProcessoMovimentoController::class, 'getById']);
-            Route::delete('/{processo_movimento_id}', [ProcessoMovimentoController::class, 'destroy']);
-        });
-        Route::prefix('processo-audiencia')->group(function (){
-            Route::get('/', [ProcessoAudienciaController::class, 'index']);
-            Route::post('/', [ProcessoAudienciaController::class, 'store']);
-            Route::put('/{processo_audiencia_id}', [ProcessoAudienciaController::class, 'update']);
-            Route::get('/get/{processo_audiencia_id}', [ProcessoAudienciaController::class, 'getById']);
-            Route::delete('/{processo_audiencia_id}', [ProcessoAudienciaController::class, 'destroy']);
-        });
-        Route::prefix('processo-ata')->group(function (){
-            Route::get('/', [ProcessoAtaController::class, 'index']);
-            Route::post('/', [ProcessoAtaController::class, 'store']);
-            Route::put('/{processo_ata_id}', [ProcessoAtaController::class, 'update']);
-            Route::get('/get/{processo_ata_id}', [ProcessoAtaController::class, 'getById']);
-            Route::delete('/{processo_ata_id}', [ProcessoAtaController::class, 'destroy']);
-        });
-
-        Route::prefix('processo-anexo')->group(function (){
-            Route::get('/', [ProcessoAnexoController::class, 'index']);
-            Route::post('/', [ProcessoAnexoController::class, 'store']);
-            Route::put('/{processo_anexo_id}', [ProcessoAnexoController::class, 'update']);
-            Route::get('/get/{processo_anexo_id}', [ProcessoAnexoController::class, 'getById']);
-            Route::delete('/{processo_anexo_id}', [ProcessoAnexoController::class, 'destroy']);
-            Route::get('/download/{processo_anexo_id}', [ProcessoAnexoController::class, 'download']);
-        });
-
-        Route::prefix('chamado')->group(function (){
-            Route::get('/', [ChamadoController::class, 'index']);
-            Route::post('/', [ChamadoController::class, 'store']);
-            Route::put('/{chamado_id}', [ChamadoController::class, 'update']);
-            Route::get('/get/{chamado_id}', [ChamadoController::class, 'getById']);
-            Route::delete('/{chamado_id}', [ChamadoController::class, 'destroy']);
-        });
-        Route::prefix('chamado-movimento')->group(function (){
-            Route::get('/', [ChamadoMovimentoController::class, 'index']);
-            Route::post('/', [ChamadoMovimentoController::class, 'store']);
-        });
-
-        Route::prefix('certificado')->group(function (){
-            Route::get('/', [CertificadoController::class, 'index']);
-            Route::post('/', [CertificadoController::class, 'store']);
-            Route::get('/get/{certificado_id}', [CertificadoController::class, 'getById']);
-            Route::delete('/{certificado_id}', [CertificadoController::class, 'destroy']);
-        });
-        Route::prefix('config')->group(function (){
-            Route::get('/getconfig', [ConfigController::class, 'getConfig']);
-            Route::get('/', [ConfigController::class, 'index']);
-            Route::post('/', [ConfigController::class, 'store']);
-            Route::put('/{config_id}', [ConfigController::class, 'update']);
-            Route::get('/get/{config_id}', [ConfigController::class, 'getById']);
-            Route::delete('/{config_id}', [ConfigController::class, 'destroy']);
-        });
-
-        Route::prefix('assinar')->group(function(){
-            Route::post('/pdf', [PdfSignController::class, 'assinar']);
-        });
-
-        Route::prefix('dashboard')->group(function () {
-            Route::get('/', [DashboardController::class, 'index']);
-        });
+        
 
     });
 });
