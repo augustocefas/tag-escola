@@ -1,9 +1,10 @@
 <?php
 // app/Http/Controllers/TagEventoController.php
 
-namespace App\Http\Controllers\Client;
+namespace App\Http\Controllers;
 
 
+use App\Http\Controllers\Client\AController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;

@@ -35,8 +35,10 @@ Route::middleware([
 ])->group(function () {
     Route::get('/', function () {
         return 'This is your multi-tenant application. The id of the current tenant is ' . tenant('id');
-
     });
+
+    Route::post('/tag/evento', [\App\Http\Controllers\TagEventoController::class, 'receber']);
+
     Route::get('/manut/user-dev-create', [AuthClientController::class, 'devCreateUser']);
     Route::get('/manut/user-dev-delete', [AuthClientController::class, 'devDeleteUser']);
 
@@ -142,7 +144,7 @@ Route::middleware([
             Route::put('/{id}', [UsersSalaController::class, 'update']);
             Route::delete('/{id}', [UsersSalaController::class, 'destroy']);
         });
-        
+
 
     });
 });
