@@ -12,8 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('aluno', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
+            $table->string('nome');
+            $table->date('nascimento')->nullable();
+            $table->string('matricula')->unique()->nullable()->index();
+            $table->uuid('anexo_id')->nullable()->index();
+            $table->foreign('anexo_id')->references('id')->on('anexo')->onDelete('cascade');
+            $table->json('dados_adicionais')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
