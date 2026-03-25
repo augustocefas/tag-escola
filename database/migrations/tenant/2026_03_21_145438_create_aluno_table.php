@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nome');
             $table->date('nascimento')->nullable();
             $table->string('matricula')->unique()->nullable()->index();
+            $table->string('responsavel')->nullable();
             $table->uuid('anexo_id')->nullable()->index();
             $table->foreign('anexo_id')->references('id')->on('anexo')->onDelete('cascade');
             $table->json('dados_adicionais')->nullable();
