@@ -5,14 +5,14 @@ import type { Usuario } from '@/types/models';
 export const useUsuarios = () => {
   return useQuery({
     queryKey: ['usuarios'],
-    queryFn: () => usuarioService.getUsuarios(),
+    queryFn: () => usuarioService.getAll(),
   });
 };
 
 export const useCreateUsuario = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: Partial<Usuario> & { password?: string }) => usuarioService.createUsuario(payload),
+    mutationFn: (payload: Partial<Usuario> & { password?: string }) => usuarioService.create(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['usuarios'] });
     },
@@ -23,7 +23,7 @@ export const useUpdateUsuario = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<Usuario> & { password?: string } }) =>
-      usuarioService.updateUsuario(id, payload),
+      usuarioService.update(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['usuarios'] });
     },
@@ -33,7 +33,7 @@ export const useUpdateUsuario = () => {
 export const useDeleteUsuario = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => usuarioService.deleteUsuario(id),
+    mutationFn: (id: string) => usuarioService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['usuarios'] });
     },

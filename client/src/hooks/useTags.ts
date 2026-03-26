@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tagService } from '../services/tag.service';
-import { Tag } from '../types/models';
+import type { Tag } from '../types/models';
 
 export const TAGS_KEYS = {
   all: ['tags'] as const,

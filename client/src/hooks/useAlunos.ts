@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { alunoService } from '../services/aluno.service';
-import { Aluno } from '../types/models';
+import type { Aluno } from '../types/models';
 
 export const ALUNOS_KEYS = {
   all: ['alunos'] as const,

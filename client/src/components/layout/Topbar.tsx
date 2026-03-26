@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   PiList,
   PiX,
-  PiScales,
+  PiStudent,
   PiMagnifyingGlass,
   PiSun,
   PiMoon,
@@ -100,9 +100,9 @@ export const Topbar: React.FC<TopbarProps> = ({
 
             {/* Logo */}
             <div className="flex items-center ml-2 lg:ml-0">
-              <PiScales className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              <PiStudent className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               <span className="ml-2 text-xl font-semibold text-gray-800 dark:text-white">
-                SysJudis
+                ESCOLA
               </span>
             </div>
           </div>

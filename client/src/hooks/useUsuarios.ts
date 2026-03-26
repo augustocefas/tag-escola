@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usuarioService } from '../services/usuario.service';
-import { Usuario } from '../types/models';
+import type { Usuario } from '../types/models';
 
 export const USUARIOS_KEYS = {
   all: ['usuarios'] as const,

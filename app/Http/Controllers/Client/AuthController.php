@@ -57,7 +57,7 @@
             try{
                 $user = User::create([
                     'name' => 'SUPORTE',
-                    'email' => 'suporte@sysjudis.com.br',
+                    'email' => 'client@localhost.com',
                     'password' => Hash::make('@@ldk36n')
                 ]);
             }catch (\Exception $e){
@@ -67,7 +67,7 @@
         }
         public function devDeleteUser(){
             try{
-                $user = User::query()->where('email', 'suporte@sysjudis.com.br');
+                $user = User::query()->where('email', 'client@localhost.com');
                 if($user->exists()){
                     $user->delete();
                     return $this->success('User deleted');

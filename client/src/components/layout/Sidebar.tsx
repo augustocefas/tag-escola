@@ -169,43 +169,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, activeTab }) => {
                         active={activeTab === 'dashboard'}
                         onClick={() => navigate('/dashboard')}
                     />
-                    {/*<NavItem
-            icon={<PiBriefcase size={20} />}
-            label="Processos"
-            active={activeTab === 'processos'}
-            onClick={() => navigate('/processos')}
-          />*/}
-                    <NavItem
-                        icon={<PiUsersThree size={20} />}
-                        label="Pessoas"
-                        active={activeTab === 'pessoas'}
-                        onClick={() => navigate('/pessoas')}
-                    />
-                    {/*<NavItem
-            icon={<PiClockCounterClockwise size={20} />}
-            label="Movimentações"
-            active={activeTab === 'movimentacoes'}
-            onClick={() => navigate('/movimentacoes')}
-           />*/}
-
-                    <NavItem
-                        icon={<PiCalendarBlank size={20} />}
-                        label="Agenda"
-                        active={activeTab === 'agenda'}
-                        onClick={() => navigate('/agenda')}
-                    />
-                    {/*<NavItem
-            icon={<PiFileText size={20} />}
-            label="Documentos"
-            active={activeTab === 'documentos'}
-            onClick={() => navigate('/documentos')}
-          />*/}
-                    <NavItem
-                        icon={<PiChatTeardropDots size={20} />}
-                        label="Solicitação"
-                        active={activeTab === 'solicitacoes'}
-                        onClick={() => navigate('/solicitacoes')}
-                    />
+                    
 
                     <div className="pt-4 pb-2">
                         <div className="border-t border-gray-200 dark:border-gray-700"></div>
@@ -223,13 +187,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, activeTab }) => {
                             onClick={() => navigate('/config/usuarios')}
                             className="!py-1.5"
                         />
-                        <NavItem
-                            icon={<PiBuildings size={18} />}
-                            label="Escritório"
-                            active={activeTab === 'config-escritorio'}
-                            onClick={() => navigate('/config/escritorio')}
-                            className="!py-1.5"
-                        />
+                       
                         <NavItem
                             icon={<PiList size={18} />}
                             label="Domínios"
@@ -237,18 +195,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, activeTab }) => {
                             onClick={() => navigate('/config/dominios')}
                             className="!py-1.5"
                         />
-                        <NavItem
-                            icon={<PiIdentificationCard size={20} />}
-                            label="Modelo de Procuração"
-                            active={activeTab === 'procuracao'}
-                            onClick={() => navigate('/procuracao')}
-                        />
-                        <NavItem
-                            icon={<PiCertificate size={20} />}
-                            label="Certificado digital"
-                            active={activeTab === 'certificado-digital'}
-                            onClick={() => navigate('/certificado-digital')}
-                        />
+                        
                     </NavGroup>
                 </div>
 

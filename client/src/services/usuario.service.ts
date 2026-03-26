@@ -1,5 +1,5 @@
 import { api } from '../lib/apiClient';
-import { Usuario, PaginatedResponse, ApiResponse } from '../types/models';
+import type { Usuario, PaginatedResponse, ApiResponse } from '../types/models';
 
 export const usuarioService = {
   getAll: async (params?: any): Promise<ApiResponse<Usuario[] | PaginatedResponse<Usuario>>> => {

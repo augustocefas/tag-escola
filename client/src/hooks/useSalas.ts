@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { salaService } from '../services/sala.service';
-import { Sala } from '../types/models';
+import type { Sala } from '../types/models';
 
 export const SALAS_KEYS = {
   all: ['salas'] as const,
